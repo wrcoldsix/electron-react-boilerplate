@@ -1,0 +1,14 @@
+.main-box {
+  padding-top: 20px;
+  display    : flex;
+
+  .cont-box {
+    margin-top : 20px;
+    display    : flex;
+    align-items: flex-start;
+
+    .cont-title {
+      min-width: 80px;
+    }
+  }
+}
