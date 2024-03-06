@@ -1,6 +1,6 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 // import Hello from '../routes/hello';
-import AutoCreatContent from '../routes/auto_create_content';
+import AutoCreatContent from '@/routes/autoCreateContent/auto_create_content';
 
 export default function App() {
   return (
