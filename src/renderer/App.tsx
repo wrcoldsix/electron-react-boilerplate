@@ -8,7 +8,7 @@ import ProjectCost from '@/routes/projectCost/projectCost';
 export default function App() {
   return (
     <Routes>
-      {/* <Route path="/" element={<Home />} /> */}
+      {/* <Route path="/" element={<MoneyCal />} /> */}
       <Route path="/moneyCal" element={<MoneyCal />} />
       <Route path="/projectReim" element={<ProjectReim />} />
       <Route path="/projectCost" element={<ProjectCost />} />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   DesktopOutlined,
   FileOutlined,
@@ -6,11 +6,20 @@ import {
   TeamOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import type { MenuProps } from 'antd';
+import { MenuProps } from 'antd';
 import { Breadcrumb, Layout, Menu, theme } from 'antd';
 import './Home.scss';
-import { useLocation, useNavigate } from 'react-router-dom';
+import {
+  Route,
+  BrowserRouter as Router,
+  Routes,
+  useLocation,
+  useNavigate,
+} from 'react-router-dom';
 import App from '@/renderer/App';
+import MoneyCal from '@/routes/moneyCal/moneyCal';
+import ProjectReim from '@/routes/projectReim/projectReim';
+import ProjectCost from '@/routes/projectCost/projectCost';
 const { Header, Content, Footer, Sider } = Layout;
 
 type MenuItem = Required<MenuProps>['items'][number];
@@ -48,6 +57,10 @@ const Home: React.FC = () => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
 
+  useEffect(()=>{
+    nav('moneyCal')
+  },[])
+
   const onClick: MenuProps['onClick'] = (e) => {
     // history.push(e.key);
     nav(e.key);
@@ -70,7 +83,8 @@ const Home: React.FC = () => {
             mode="inline"
             items={items}
             onClick={onClick}
-            selectedKeys={[current]}
+            forceSubMenuRender={true}
+            defaultSelectedKeys={[current]}
           />
         </Sider>
         <Layout>
