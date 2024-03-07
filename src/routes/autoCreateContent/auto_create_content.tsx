@@ -21,7 +21,7 @@ const AutoCreatContent = () => {
     '你是地理专家，请用【】为标题，写一篇1500字的文章。',
   );
   const [title, setTitle] = useState(
-    '&%跟&%哪个更有发展潜力？这篇文章告诉你答案！',
+    '网上说&%比&%更发展潜力，&%跟&%都生活过后，才发现两者的差距很大！',
   );
   const [materialList, setMaterialList] = useState('');
   const [singleMaterialList, setSingleMaterialList] = useState('');
@@ -64,20 +64,29 @@ const AutoCreatContent = () => {
     fileIsNull.current.method1 = false;
 
     readExcel(fileVal).then((res) => {
+      const paramsNum = Object.keys(res[0]).length;
+
       paramsTitleArr.forEach((cont, index) => {
         let material: string[] = [];
         res.forEach((item) => {
-          material.push(item[cont]);
+          item[cont] && material.push(item[cont]);
         });
 
         if (index !== paramsTitleArr.length - 1) {
-          materialStr += material.join(',') + ';';
+          if (paramsNum === paramsTitleArr.length) {
+            materialStr += material.join(',') + ';';
+          } else if (index + 1 <= paramsTitleArr.length / 2) {
+            materialStr += material.join(',') + ';';
+          }
         } else {
           materialStr += material.join(',');
         }
       });
 
       if (materialStr.endsWith(',')) {
+        materialStr = materialStr.slice(0, -1);
+      }
+      if (materialStr.endsWith(';')) {
         materialStr = materialStr.slice(0, -1);
       }
 
@@ -99,37 +108,22 @@ const AutoCreatContent = () => {
 
   // 排列组合
   const combine = (data: string[]) => {
-    const finallyData: Array<string[]> = [];
-    const firstDataArr = data[0].split(',');
-
-    firstDataArr.forEach((item) => {
-      let strArr: any[] = [];
-      data.forEach((cont, ind) => {
-        if (ind > 0) {
-          let index = 0;
-          const materialStrArr = cont.split(',');
-
-          for (let i = index; i < materialStrArr.length; i++) {
-            if (item === materialStrArr[i]) {
-              continue;
-            }
-            // 不可重复
-            strArr = [];
-            index = i;
-            if (strArr.length === data.length) {
-              break;
-            }
-
-            strArr.push(item);
-            strArr.push(materialStrArr[index]);
-
-            finallyData.push(strArr);
-          }
-        }
-      });
-    });
-
-    return finallyData;
+    const finallyData: Array<string[]> = data.map((item) => item.split(','));
+    // 对每个数组进行去重
+    const uniqueArrays = finallyData.map((array) => [...new Set(array)]);
+    // 优化后的笛卡尔积计算
+    let result = uniqueArrays[0].map((item) => [item]);
+    for (let i = 1; i < uniqueArrays.length; i++) {
+      result = result.flatMap((comb) =>
+        uniqueArrays[i].map((item) => {
+          // 如果当前元素与组合中的最后一个元素相同，则返回空数组
+          if (item === comb[comb.length - 1]) return [];
+          return comb.concat(item);
+        }),
+      );
+    }
+    // 过滤掉空数组（由于跳过了重复元素）
+    return result.filter((comb) => comb.length > 0);
   };
 
   // 生成
@@ -142,24 +136,21 @@ const AutoCreatContent = () => {
         return alert('标题格式不对，变量的位置请使用&%');
       if (fileIsNull.current.method1) return alert('方式1素材未上传');
 
-      const allTitleArr = title.split('&%');
-      let allMaterialList: string[] = [];
-      // 如果有4个变量的，这种特殊处理，后两个跟前两个是一致的,尚未完成
-
-      if (materialList.split(';').length + 1 !== allTitleArr.length) {
-        allTitleArr.forEach((item) => {
-          allMaterialList.push(materialList + ';');
-        });
-      } else {
-        allMaterialList = materialList.split(';');
-      }
-
+      let allMaterialList: string[] = materialList.split(';');
       const materialCombineData = combine(allMaterialList);
+      const titleLength = title.split('&%').length - 1;
+
       const finallyTitleArr = materialCombineData.map((item) => {
         let titleStr = title;
         item.forEach((cont) => {
           titleStr = titleStr.replace('&%', cont);
         });
+
+        if (titleLength === 2 * materialCombineData[0].length) {
+          item.forEach((cont) => {
+            titleStr = titleStr.replace('&%', cont);
+          });
+        }
 
         return titleStr;
       });
