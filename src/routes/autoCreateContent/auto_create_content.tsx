@@ -6,6 +6,7 @@ const AutoCreatContent = () => {
   const tabRef = useRef(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const singleFileRef = useRef<HTMLInputElement | null>(null);
+  const exportLoading = useRef(false);
   const fileIsNull = useRef({
     method1: true,
     method2: true,
@@ -28,7 +29,10 @@ const AutoCreatContent = () => {
 
   useEffect(() => {
     if (finallTableData.length) {
-      exportExcel(tabRef, [[...finallTableData]]);
+      exportLoading.current = false
+      const exportTabledata = finallTableData.map((item) => [item]);
+
+      exportExcel(exportTabledata);
     }
   }, [finallTableData]);
 
@@ -128,6 +132,7 @@ const AutoCreatContent = () => {
 
   // 生成
   const generate = () => {
+    exportLoading.current = true
     if (radioVal === '0') {
       if (!title || !promptStr) return alert('提示词或标题不可为空');
       if (!promptStr.includes('【】'))
@@ -271,11 +276,12 @@ const AutoCreatContent = () => {
       <br />
       {/* 暂时使用按钮，生成内容，最后提供导出 */}
       <button onClick={generate}>导出最终文件</button>
+      {exportLoading.current ? '导出中' : '未导出'}
       <br />
       <br />
 
       {/* 预生成表格，使用表格的格式内容生成excel */}
-      <table ref={tabRef} style={{ display: 'none' }}>
+      {/* <table ref={tabRef} style={{ display: 'none' }}>
         <tbody>
           {finallTableData.map((item) => {
             return (
@@ -285,7 +291,7 @@ const AutoCreatContent = () => {
             );
           })}
         </tbody>
-      </table>
+      </table> */}
     </div>
   );
 };
