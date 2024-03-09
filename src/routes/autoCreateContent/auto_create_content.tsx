@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import './auto_create_content.scss';
 import { exportExcel, readExcel } from '@/utils/createExcel';
+import { debounce } from '@/utils/common';
+import { Button } from 'antd';
 
 const AutoCreatContent = () => {
   const tabRef = useRef(null);
@@ -29,7 +31,7 @@ const AutoCreatContent = () => {
 
   useEffect(() => {
     if (finallTableData.length) {
-      exportLoading.current = false
+      exportLoading.current = false;
       const exportTabledata = finallTableData.map((item) => [item]);
 
       exportExcel(exportTabledata);
@@ -132,7 +134,7 @@ const AutoCreatContent = () => {
 
   // 生成
   const generate = () => {
-    exportLoading.current = true
+    exportLoading.current = true;
     if (radioVal === '0') {
       if (!title || !promptStr) return alert('提示词或标题不可为空');
       if (!promptStr.includes('【】'))
@@ -254,7 +256,13 @@ const AutoCreatContent = () => {
               className="fileUpload"
               onChange={handleFileChange}
             />
-            <button onClick={handleMaterialClick}>上传素材</button>
+            <Button type="primary" onClick={handleMaterialClick}>
+              上传素材
+            </Button>
+            &nbsp;&nbsp;
+            <span>
+              {!fileIsNull.current.method1 ? '素材已上传' : '素材未上传'}
+            </span>
           </div>
         </>
       )}
@@ -269,13 +277,22 @@ const AutoCreatContent = () => {
               className="fileUpload"
               onChange={handleSingleFileChange}
             />
-            <button onClick={handleMaterialClick}>上传素材</button>
+            <Button type="primary" onClick={handleMaterialClick}>
+              上传素材
+            </Button>
+            &nbsp;&nbsp;
+            {/* <button onClick={handleMaterialClick}>上传素材</button> */}
+            <span>
+              {!fileIsNull.current.method2 ? '素材已上传' : '素材未上传'}
+            </span>
           </div>
         </>
       )}
       <br />
       {/* 暂时使用按钮，生成内容，最后提供导出 */}
-      <button onClick={generate}>导出最终文件</button>
+      <Button type="primary" onClick={debounce(generate, 300)}>
+        导出最终文件
+      </Button>
       {exportLoading.current ? '导出中' : '未导出'}
       <br />
       <br />
