@@ -8,7 +8,6 @@ const AutoCreatContent = () => {
   const tabRef = useRef(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const singleFileRef = useRef<HTMLInputElement | null>(null);
-  const exportLoading = useRef(false);
   const fileIsNull = useRef({
     method1: true,
     method2: true,
@@ -31,7 +30,6 @@ const AutoCreatContent = () => {
 
   useEffect(() => {
     if (finallTableData.length) {
-      exportLoading.current = false;
       const exportTabledata = finallTableData.map((item) => [item]);
 
       exportExcel(exportTabledata);
@@ -134,7 +132,6 @@ const AutoCreatContent = () => {
 
   // 生成
   const generate = () => {
-    exportLoading.current = true;
     if (radioVal === '0') {
       if (!title || !promptStr) return alert('提示词或标题不可为空');
       if (!promptStr.includes('【】'))
@@ -212,7 +209,9 @@ const AutoCreatContent = () => {
             onChange={handlePromptChange}
           ></textarea>
           &nbsp;&nbsp;&nbsp;&nbsp;
-          <button onClick={resetAllMes}>重置所有信息</button>
+          <Button type="primary" onClick={resetAllMes}>
+            重置所有信息
+          </Button>
         </div>
       </div>
       <div className="main-box">
@@ -290,10 +289,17 @@ const AutoCreatContent = () => {
       )}
       <br />
       {/* 暂时使用按钮，生成内容，最后提供导出 */}
-      <Button type="primary" onClick={debounce(generate, 300)}>
+      <Button
+        type="primary"
+        disabled={
+          radioVal === '0'
+            ? fileIsNull.current.method1
+            : fileIsNull.current.method2
+        }
+        onClick={debounce(generate, 300)}
+      >
         导出最终文件
       </Button>
-      {exportLoading.current ? '导出中' : '未导出'}
       <br />
       <br />
 
