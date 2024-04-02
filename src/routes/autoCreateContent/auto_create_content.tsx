@@ -5,7 +5,6 @@ import { debounce } from '@/utils/common';
 import { Button } from 'antd';
 
 const AutoCreatContent = () => {
-  const tabRef = useRef(null);
   const fileRef = useRef<HTMLInputElement | null>(null);
   const singleFileRef = useRef<HTMLInputElement | null>(null);
   const fileIsNull = useRef({
@@ -19,12 +18,8 @@ const AutoCreatContent = () => {
 
   const [radioVal, setradioVal] = useState('0');
   const [finallTableData, setFinallTableData] = useState<string[]>([]);
-  const [promptStr, setPromptStr] = useState(
-    '你是地理专家，请用【】为标题，写一篇1500字的文章。',
-  );
-  const [title, setTitle] = useState(
-    '网上说&%比&%更发展潜力，&%跟&%都生活过后，才发现两者的差距很大！',
-  );
+  const [promptStr, setPromptStr] = useState('');
+  const [title, setTitle] = useState('');
   const [materialList, setMaterialList] = useState('');
   const [singleMaterialList, setSingleMaterialList] = useState('');
 
@@ -51,8 +46,16 @@ const AutoCreatContent = () => {
   // 处理素材提供点击事件
   const handleMaterialClick = () => {
     if (radioVal === '0') {
+      if (!title || !promptStr) return alert('提示词或标题不可为空');
+      if (!promptStr.includes('【】'))
+        return alert('提示词格式不对，标题的位置请使用【】');
+      if (!title.includes('&%'))
+        return alert('标题格式不对，变量的位置请使用&%');
       fileRef.current && fileRef.current.click();
     } else {
+      if (!promptStr) return alert('提示词不可为空');
+      if (!promptStr.includes('【】'))
+        return alert('提示词格式不对，标题的位置请使用【】');
       singleFileRef.current && singleFileRef.current.click();
     }
   };
@@ -65,7 +68,6 @@ const AutoCreatContent = () => {
     const paramsTitleArr = titleArr
       .slice(0, titleArr.length - 1)
       .map((item, index) => '参数' + (index + 1));
-    fileIsNull.current.method1 = false;
 
     readExcel(fileVal).then((res) => {
       const paramsNum = Object.keys(res[0]).length;
@@ -94,6 +96,7 @@ const AutoCreatContent = () => {
         materialStr = materialStr.slice(0, -1);
       }
 
+      fileIsNull.current.method1 = false;
       setMaterialList(materialStr);
     });
   };
@@ -101,11 +104,11 @@ const AutoCreatContent = () => {
   // 处理生成方式2文件上传
   const handleSingleFileChange = async (events: any) => {
     const fileVal: File = events.target.files[0];
-    fileIsNull.current.method2 = false;
 
     readExcel(fileVal).then((res) => {
       const materialList: string[] = res.map((item) => item['参数']);
 
+      fileIsNull.current.method2 = false;
       setSingleMaterialList(materialList.join(','));
     });
   };
@@ -183,10 +186,6 @@ const AutoCreatContent = () => {
 
   // 重置所有信息
   const resetAllMes = () => {
-    setTitle('');
-    setPromptStr('');
-    setMaterialList('');
-    setFinallTableData([]);
     fileIsNull.current = {
       method1: true,
       method2: true,
@@ -194,6 +193,13 @@ const AutoCreatContent = () => {
     if (fileRef.current) {
       fileRef.current.value = '';
     }
+    if (singleFileRef.current) {
+      singleFileRef.current.value = '';
+    }
+    setTitle('');
+    setPromptStr('');
+    setMaterialList('');
+    setFinallTableData([]);
   };
 
   return (
@@ -300,21 +306,6 @@ const AutoCreatContent = () => {
       >
         导出最终文件
       </Button>
-      <br />
-      <br />
-
-      {/* 预生成表格，使用表格的格式内容生成excel */}
-      {/* <table ref={tabRef} style={{ display: 'none' }}>
-        <tbody>
-          {finallTableData.map((item) => {
-            return (
-              <tr key={item}>
-                <td>{item}</td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table> */}
     </div>
   );
 };
