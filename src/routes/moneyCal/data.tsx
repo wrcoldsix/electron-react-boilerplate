@@ -1,57 +1,64 @@
+import { Button, Select } from 'antd';
 import { ColumnsType } from 'antd/es/table/interface';
 import { ITableRow } from './type';
 
-export const columns: () => ColumnsType<ITableRow> = () => {
+export const columns = ({
+  daysList,
+  monthlyAttendanceDays,
+  edit,
+  del,
+  handleMonthlyAttendanceDaysChange,
+}: {
+  daysList: { label: string; value: string }[];
+  monthlyAttendanceDays: string;
+  del: (record: ITableRow) => void;
+  edit: (record: ITableRow) => void;
+  handleMonthlyAttendanceDaysChange: (val: string) => void;
+}): ColumnsType<ITableRow> => {
   return [
     {
       title: '月应出勤天数',
+      align: 'center',
+      fixed: 'left',
       children: [
         {
-          title: '工资条',
+          title: '基本信息',
+          align: 'center',
           children: [
             {
-              title: '',
-              dataIndex: 'wagesTitle',
+              title: '所属项目',
+              align: 'center',
+              dataIndex: 'project',
               width: 80,
             },
-          ],
-        },
-        {
-          title: '姓名',
-          children: [
             {
-              title: '',
+              title: '姓名',
+              align: 'center',
               dataIndex: 'name',
               width: 80,
             },
-          ],
-        },
-        {
-          title: '身份证号',
-          children: [
             {
-              title: '',
+              title: '身份证号',
+              align: 'center',
               dataIndex: 'idCard',
               width: 80,
             },
-          ],
-        },
-        {
-          title: '银行卡号',
-          children: [
             {
-              title: '',
+              title: '银行卡号',
+              align: 'center',
               dataIndex: 'bankNo',
               width: 80,
             },
-          ],
-        },
-        {
-          title: '开户行',
-          children: [
             {
-              title: '',
+              title: '开户行',
+              align: 'center',
               dataIndex: 'bank',
+              width: 80,
+            },
+            {
+              title: '电话',
+              align: 'center',
+              dataIndex: 'phone',
               width: 80,
             },
           ],
@@ -59,144 +66,155 @@ export const columns: () => ColumnsType<ITableRow> = () => {
       ],
     },
     {
-      title: new Date().getDate(),
+      title: () => (
+        <Select
+          style={{ width: '60px' }}
+          value={monthlyAttendanceDays}
+          options={daysList}
+          onChange={handleMonthlyAttendanceDaysChange}
+        />
+      ),
+      dataIndex: 'monthlyAttendanceDays',
+      width: 80,
       children: [
         {
-          title: '电话',
-          dataIndex: 'phone',
-          key: 'phone',
+          title: ' ',
           width: 80,
         },
       ],
     },
     {
       title: '应发金额',
+      align: 'center',
       children: [
         {
           title: '出勤情况',
           children: [
             {
               title: '出勤天数',
+              align: 'center',
               dataIndex: 'workDay',
-              key: 'workDay',
-              width: 100,
+              width: 80,
             },
             {
               title: '加班时间',
+              align: 'center',
               dataIndex: 'overtimeDay',
-              key: 'overtimeDay',
-              width: 100,
+              width: 80,
             },
             {
               title: '迟到早退',
+              align: 'center',
               dataIndex: 'lateOrLeaveEarlyDay',
-              key: 'lateOrLeaveEarlyDay',
-              width: 100,
+              width: 80,
             },
             {
               title: '病事假',
+              align: 'center',
               dataIndex: 'otherVocationDay',
-              key: 'otherVocationDay',
-              width: 100,
+              width: 80,
             },
             {
               title: '旷工',
+              align: 'center',
               dataIndex: 'absenteeismDay',
-              key: 'absenteeismDay',
-              width: 100,
+              width: 80,
             },
           ],
         },
         {
           title: '基本部分',
+          align: 'center',
           children: [
             {
               title: '基本工资',
+              align: 'center',
               dataIndex: 'baseWages',
-              key: 'baseWages',
-              width: 100,
+              width: 80,
             },
             {
               title: '岗位绩效',
+              align: 'center',
               dataIndex: 'jobPerformance',
-              key: 'jobPerformance',
-              width: 100,
+              width: 80,
             },
             {
               title: '岗位等级工资',
+              align: 'center',
               dataIndex: 'levelWages',
-              key: 'levelWages',
-              width: 100,
+              width: 120,
             },
             {
               title: '基本部分合计',
+              align: 'center',
               dataIndex: 'baseWagesSum',
-              key: 'baseWagesSum',
-              width: 100,
+              width: 120,
             },
           ],
         },
         {
           title: '绩效部分',
+          align: 'center',
           children: [
             {
               title: '绩效工资（计件）',
+              align: 'center',
               dataIndex: 'jobPerformancePer',
-              key: 'jobPerformancePer',
-              width: 100,
+              width: 140,
             },
             {
               title: '绩效补贴',
+              align: 'center',
               dataIndex: 'jobPerformanceSubsidy',
-              key: 'jobPerformanceSubsidy',
-              width: 100,
+              width: 80,
             },
             {
               title: '绩效部分合计',
+              align: 'center',
               dataIndex: 'jobPerformanceSum',
-              key: 'jobPerformanceSum',
-              width: 100,
+              width: 120,
             },
           ],
         },
         {
           title: '补助情况',
+          align: 'center',
           children: [
             {
               title: '交通补助',
+              align: 'center',
               dataIndex: 'transSubsidy',
-              key: 'transSubsidy',
-              width: 100,
+              width: 80,
             },
             {
               title: '午餐补助',
+              align: 'center',
               dataIndex: 'lunchSubsidy',
-              key: 'lunchSubsidy',
-              width: 100,
+              width: 80,
             },
             {
               title: '加班薪资',
+              align: 'center',
               dataIndex: 'overTimeWages',
-              key: 'overTimeWages',
-              width: 100,
+              width: 80,
             },
             {
               title: '工龄补助',
+              align: 'center',
               dataIndex: 'workAgeSubsidy',
-              key: 'workAgeSubsidy',
-              width: 100,
+              width: 80,
             },
             {
               title: '其他',
+              align: 'center',
               dataIndex: 'otherSubsidy',
-              key: 'otherSubsidy',
-              width: 100,
+              width: 80,
             },
             {
               title: '合计',
+              align: 'center',
               dataIndex: 'subsidySum',
-              key: 'subsidySum',
-              width: 100,
+              width: 80,
             },
           ],
         },
@@ -204,39 +222,41 @@ export const columns: () => ColumnsType<ITableRow> = () => {
     },
     {
       title: '应扣工资',
+      align: 'center',
       children: [
         {
           title: '出勤栏',
+          align: 'center',
           children: [
             {
               title: '迟到早退',
+              align: 'center',
               dataIndex: 'lateOrLeaveEarlyPrice',
-              key: 'lateOrLeaveEarlyPrice',
-              width: 100,
+              width: 80,
             },
             {
               title: '病事假',
+              align: 'center',
               dataIndex: 'otherVocationPrice',
-              key: 'otherVocationPrice',
-              width: 100,
+              width: 80,
             },
             {
               title: '旷工',
+              align: 'center',
               dataIndex: 'absenteeismPrice',
-              key: 'absenteeismPrice',
-              width: 100,
+              width: 80,
             },
             {
               title: '其他',
+              align: 'center',
               dataIndex: 'otherDeductWages',
-              key: 'otherDeductWages',
-              width: 100,
+              width: 80,
             },
             {
               title: '合计',
+              align: 'center',
               dataIndex: 'deductWagesSum',
-              key: 'deductWagesSum',
-              width: 100,
+              width: 80,
             },
           ],
         },
@@ -244,10 +264,29 @@ export const columns: () => ColumnsType<ITableRow> = () => {
     },
     {
       title: '实发工资',
+      align: 'center',
       dataIndex: 'finallyWages',
-      key: 'finallyWages',
-      width: 100,
+      width: 80,
+    },
+    {
+      title: '操作',
       fixed: 'right',
+      align: 'center',
+      dataIndex: 'operation',
+      width: 200,
+      render: (text, record) => {
+        return (
+          <>
+            <Button type="primary" onClick={() => edit(record)}>
+              编辑
+            </Button>
+            &nbsp;&nbsp;
+            <Button type="primary" onClick={() => del(record)}>
+              删除
+            </Button>
+          </>
+        );
+      },
     },
   ];
 };

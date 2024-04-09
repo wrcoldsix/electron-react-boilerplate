@@ -69,9 +69,6 @@ const Home: React.FC = () => {
 
   return (
     <>
-      <Header style={{ padding: 0, background: colorBgContainer }}>
-        真是服了你个老六
-      </Header>
       <Layout style={{ minHeight: '100vh' }}>
         <Sider
           collapsible

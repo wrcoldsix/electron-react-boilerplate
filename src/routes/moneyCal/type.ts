@@ -29,6 +29,12 @@ export interface ITableRow {
   otherDeductWages: string;
   deductWagesSum: string;
   finallyWages: string;
+  project: string;
+  id: null | number;
+  allWorkDay: string;
+  truWorkDay: string;
+  perTransPrice: string;
+  mealSupplementStandard: string
 }
 
 export const initTableRow: ITableRow = {
@@ -62,6 +68,12 @@ export const initTableRow: ITableRow = {
   otherDeductWages: '',
   deductWagesSum: '',
   finallyWages: '',
+  project: '',
+  id: null,
+  allWorkDay: '',
+  truWorkDay: '',
+  perTransPrice: '',
+  mealSupplementStandard: ""
 };
 
 export interface IFormData {
@@ -74,6 +86,8 @@ export interface IFormData {
   jobPerformanceSubsidy: string;
   workAgeSubsidy: string;
   otherSubsidy: string;
+  mealSupplementStandard: string,
+  overTimeWages: string
 }
 
 export const initFormData: IFormData = {
@@ -86,4 +100,6 @@ export const initFormData: IFormData = {
   jobPerformanceSubsidy: '',
   workAgeSubsidy: '',
   otherSubsidy: '',
+  mealSupplementStandard: "",
+  overTimeWages: ""
 };
