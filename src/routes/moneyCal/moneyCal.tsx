@@ -1,8 +1,11 @@
 import { Button, Form, Input, message, Modal, Table } from 'antd';
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { columns } from './data';
 import { IFormData, initFormData, initTableRow, ITableRow } from './type';
 import moment from 'moment';
+import { exportExcelJson } from '@/utils/createExcel';
+import { ColumnsType } from 'antd/es/table/InternalTable';
+import { ColumnGroupType } from 'antd/es/table/interface';
 
 type LayoutType = Parameters<typeof Form>[0]['layout'];
 
@@ -12,11 +15,13 @@ const MoneyCal = () => {
   const formItemLayout = { labelCol: { span: 6 }, wrapperCol: { span: 16 } };
   const { getFieldsValue, setFieldsValue, validateFields } = form;
 
-  const [dataSource, setDataSource] = useState<ITableRow[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dataSource, setDataSource] = useState<ITableRow[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [selectedRows, setSelectedRows] = useState<ITableRow[]>([]);
   const [monthlyAttendanceDays, setMonthlyAttendanceDays] = useState('');
   const daysList = useRef<{ label: string; value: string }[]>([]);
+  const finalColumns = useRef<ColumnsType<any>>([]);
 
   useEffect(() => {
     setDaysListData();
@@ -38,7 +43,11 @@ const MoneyCal = () => {
   };
 
   // 处理多选框change事件
-  const onSelectChange = (newSelectedRowKeys: React.Key[]) => {
+  const onSelectChange = (
+    newSelectedRowKeys: React.Key[],
+    selectedRows: ITableRow[],
+  ) => {
+    setSelectedRows(selectedRows);
     setSelectedRowKeys(newSelectedRowKeys);
   };
 
@@ -54,7 +63,7 @@ const MoneyCal = () => {
       project: record.project,
       name: record.name,
       allWorkDay: record.allWorkDay,
-      truWorkDay: record.truWorkDay,
+      workDay: record.workDay,
       baseWages: record.baseWages,
       perTransPrice: record.perTransPrice,
       jobPerformanceSubsidy: record.jobPerformanceSubsidy,
@@ -73,12 +82,51 @@ const MoneyCal = () => {
   };
 
   // 导出
-  const exportExcel = () => {
-    if (!selectedRowKeys.length) {
-      console.log('默认导出全部');
-    } else {
-      console.log('导出选中内容文件');
+  const exportExcelFunc = () => {
+    let exportData = dataSource;
+    if (selectedRowKeys.length) {
+      exportData = selectedRows;
     }
+
+    exportExcelJson({
+      data: exportData.map((item) => {
+        delete item.id;
+        delete item.allWorkDay;
+        delete item.perTransPrice;
+        delete item.mealSupplementStandard;
+
+        return {
+          ...item,
+          monthlyAttendanceDays: monthlyAttendanceDays,
+        };
+      }),
+      columns: formatColumnsData(finalColumns.current),
+    });
+  };
+
+  // 获取columns表头数据
+  const getColumnsData = (columnsArr: ColumnsType<any>) => {
+    finalColumns.current = columnsArr;
+  };
+
+  // 格式化columns表头数据
+  const formatColumnsData = (allColumnsData: ColumnsType<any>) => {
+    let columnsData: ColumnsType<any> = [];
+    allColumnsData.forEach((item) => {
+      if ((item as any).children) {
+        const partColumnsData = formatColumnsData((item as any).children);
+        columnsData = [...columnsData, ...partColumnsData];
+      }
+
+      if (!item.render && (item as any).dataIndex) {
+        columnsData.push({
+          title: React.isValidElement(item.title) ? '月应出勤天数' : item.title,
+          dataIndex: (item as any).dataIndex,
+        });
+      }
+    });
+
+    return columnsData;
   };
 
   // 添加工资弹窗打开
@@ -90,27 +138,64 @@ const MoneyCal = () => {
   const handleOk = async () => {
     try {
       const val = await validateFields();
+      console.log('val', val);
+
       const formParms: IFormData = getFieldsValue();
-      const { baseWages, allWorkDay, truWorkDay, perTransPrice } = formParms;
+      const {
+        baseWages,
+        allWorkDay,
+        workDay: truWorkDay,
+        perTransPrice,
+        overTimeWages,
+        workAgeSubsidy,
+        otherSubsidy,
+        mealSupplementStandard,
+        jobPerformanceSubsidy,
+      } = formParms;
       const tableData = [...dataSource];
+
+      // 基本部分合计
       const baseWagesSum =
         (Number(baseWages) / Number(allWorkDay)) * Number(truWorkDay);
-      const lunchSubsidy = Number(truWorkDay) * 15;
-      let transSubsidy = Number(truWorkDay) * 2 * Number(perTransPrice);
-      // 要累积交通费
-      if (transSubsidy >= 50) {
-        transSubsidy = Number(truWorkDay) * 2 * Number(perTransPrice) * 0.8;
-      } else if (transSubsidy >= 100) {
-        transSubsidy = Number(truWorkDay) * 2 * Number(perTransPrice) * 0.5;
-      }
+
+      // 绩效部分合计
+      const jobPerformanceSum = Number(jobPerformanceSubsidy ?? 0) + 0;
+
+      // 午餐补助
+      const lunchSubsidy =
+        Number(truWorkDay) *
+        Number(mealSupplementStandard ? mealSupplementStandard : 0);
+
+      // 累计交通费
+      let transSubsidy = 0;
+
+      // 补助合计
+      const subsidySum =
+        Number(transSubsidy) +
+        lunchSubsidy +
+        Number(overTimeWages ?? 0) +
+        Number(workAgeSubsidy ?? 0) +
+        Number(otherSubsidy ?? 0);
+
+      // 出勤栏合计
+      const deductWagesSum = 0;
+
+      // 实发工资
+      const finallyWages =
+        baseWagesSum + jobPerformanceSum + subsidySum + deductWagesSum;
 
       tableData.push({
         ...initTableRow,
         id: new Date().getTime(),
         ...formParms,
+        subsidySum: subsidySum,
+        jobPerformanceSubsidy,
+        jobPerformanceSum,
         baseWagesSum: baseWagesSum,
         lunchSubsidy: lunchSubsidy,
         transSubsidy: transSubsidy,
+        deductWagesSum,
+        finallyWages,
       });
 
       setDataSource([...tableData]);
@@ -133,7 +218,7 @@ const MoneyCal = () => {
         添加工资
       </Button>
       &nbsp;&nbsp;
-      <Button type="primary" onClick={exportExcel}>
+      <Button type="primary" onClick={exportExcelFunc}>
         导出
       </Button>
       <br />
@@ -151,6 +236,7 @@ const MoneyCal = () => {
           monthlyAttendanceDays,
           edit,
           del,
+          getColumnsData,
           handleMonthlyAttendanceDaysChange,
         })}
       />
@@ -195,15 +281,15 @@ const MoneyCal = () => {
             key="allWorkDay"
             rules={[{ required: true }]}
           >
-            <Input className="custom_input" />
+            <Input className="custom_input" type="number" />
           </Form.Item>
           <Form.Item
             label="实际出勤天数"
-            name={'truWorkDay'}
-            key="truWorkDay"
+            name={'workDay'}
+            key="workDay"
             rules={[{ required: true }]}
           >
-            <Input className="custom_input" />
+            <Input className="custom_input" type="number" />
           </Form.Item>
           <Form.Item
             label="基本工资"
@@ -211,7 +297,7 @@ const MoneyCal = () => {
             key="baseWages"
             rules={[{ required: true }]}
           >
-            <Input className="custom_input" />
+            <Input className="custom_input" type="number" />
           </Form.Item>
           <Form.Item
             label="实际交通费（次）"
@@ -232,24 +318,24 @@ const MoneyCal = () => {
             name={'jobPerformanceSubsidy'}
             key="jobPerformanceSubsidy"
           >
-            <Input />
+            <Input type="number" />
           </Form.Item>
           <Form.Item
             label="加班薪资"
             name={'overTimeWages'}
             key="overTimeWages"
           >
-            <Input />
+            <Input type="number" />
           </Form.Item>
           <Form.Item
             label="工龄补助"
             name={'workAgeSubsidy'}
             key="workAgeSubsidy"
           >
-            <Input />
+            <Input type="number" />
           </Form.Item>
           <Form.Item label="其他补助" name={'otherSubsidy'} key="otherSubsidy">
-            <Input />
+            <Input type="number" />
           </Form.Item>
         </Form>
       </Modal>

@@ -5,36 +5,35 @@ export interface ITableRow {
   bankNo: string;
   bank: string;
   phone: string;
-  workDay: string;
-  overtimeDay: string;
-  lateOrLeaveEarlyDay: string;
-  otherVocationDay: string;
-  absenteeismDay: string;
-  baseWages: string;
-  jobPerformance: string;
-  levelWages: string;
-  baseWagesSum: number | string;
-  jobPerformancePer: string;
-  jobPerformanceSubsidy: string;
-  jobPerformanceSum: string;
-  transSubsidy: number | string;
-  lunchSubsidy: number | string;
-  overTimeWages: string;
-  workAgeSubsidy: string;
-  otherSubsidy: string;
-  subsidySum: string;
-  lateOrLeaveEarlyPrice: string;
-  otherVocationPrice: string;
-  absenteeismPrice: string;
-  otherDeductWages: string;
-  deductWagesSum: string;
-  finallyWages: string;
+  workDay: number | null;
+  overtimeDay: number | null;
+  lateOrLeaveEarlyDay: number | null;
+  otherVocationDay: number | null;
+  absenteeismDay: number | null;
+  baseWages: number | null;
+  jobPerformance: number | null;
+  levelWages: number | null;
+  baseWagesSum: number | null;
+  jobPerformancePer: number | null;
+  jobPerformanceSubsidy: number | null;
+  jobPerformanceSum: number | null;
+  transSubsidy: number | null;
+  lunchSubsidy: number | null;
+  overTimeWages: number | null;
+  workAgeSubsidy: number | null;
+  otherSubsidy: number | null;
+  subsidySum: number | null;
+  lateOrLeaveEarlyPrice: number | null;
+  otherVocationPrice: number | null;
+  absenteeismPrice: number | null;
+  otherDeductWages: number | null;
+  deductWagesSum: number | null;
+  finallyWages: number | null;
   project: string;
-  id: null | number;
-  allWorkDay: string;
-  truWorkDay: string;
-  perTransPrice: string;
-  mealSupplementStandard: string
+  id?: null | number;
+  allWorkDay?: number | null;
+  perTransPrice?: number | null;
+  mealSupplementStandard?: number | null;
 }
 
 export const initTableRow: ITableRow = {
@@ -44,62 +43,61 @@ export const initTableRow: ITableRow = {
   bankNo: '',
   bank: '',
   phone: '',
-  workDay: '',
-  overtimeDay: '',
-  lateOrLeaveEarlyDay: '',
-  otherVocationDay: '',
-  absenteeismDay: '',
-  baseWages: '',
-  jobPerformance: '',
-  levelWages: '',
-  baseWagesSum: '',
-  jobPerformancePer: '',
-  jobPerformanceSubsidy: '',
-  jobPerformanceSum: '',
-  transSubsidy: '',
-  lunchSubsidy: '',
-  overTimeWages: '',
-  workAgeSubsidy: '',
-  otherSubsidy: '',
-  subsidySum: '',
-  lateOrLeaveEarlyPrice: '',
-  otherVocationPrice: '',
-  absenteeismPrice: '',
-  otherDeductWages: '',
-  deductWagesSum: '',
-  finallyWages: '',
+  workDay: null,
+  overtimeDay: null,
+  lateOrLeaveEarlyDay: null,
+  otherVocationDay: null,
+  absenteeismDay: null,
+  baseWages: null,
+  jobPerformance: null,
+  levelWages: null,
+  baseWagesSum: null,
+  jobPerformancePer: null,
+  jobPerformanceSubsidy: null,
+  jobPerformanceSum: null,
+  transSubsidy: null,
+  lunchSubsidy: null,
+  overTimeWages: null,
+  workAgeSubsidy: null,
+  otherSubsidy: null,
+  subsidySum: null,
+  lateOrLeaveEarlyPrice: null,
+  otherVocationPrice: null,
+  absenteeismPrice: null,
+  otherDeductWages: null,
+  deductWagesSum: null,
+  finallyWages: null,
   project: '',
   id: null,
-  allWorkDay: '',
-  truWorkDay: '',
-  perTransPrice: '',
-  mealSupplementStandard: ""
+  allWorkDay: null,
+  perTransPrice: null,
+  mealSupplementStandard: null,
 };
 
 export interface IFormData {
   project: string;
   name: string;
-  allWorkDay: string;
-  truWorkDay: string;
-  baseWages: string;
-  perTransPrice: string;
-  jobPerformanceSubsidy: string;
-  workAgeSubsidy: string;
-  otherSubsidy: string;
-  mealSupplementStandard: string,
-  overTimeWages: string
+  allWorkDay: number | null;
+  workDay: number | null;
+  baseWages: number | null;
+  perTransPrice: number | null;
+  jobPerformanceSubsidy: number | null;
+  workAgeSubsidy: number | null;
+  otherSubsidy: number | null;
+  mealSupplementStandard: number | null;
+  overTimeWages: number | null;
 }
 
 export const initFormData: IFormData = {
   project: '',
   name: '',
-  allWorkDay: '',
-  truWorkDay: '',
-  baseWages: '',
-  perTransPrice: '',
-  jobPerformanceSubsidy: '',
-  workAgeSubsidy: '',
-  otherSubsidy: '',
-  mealSupplementStandard: "",
-  overTimeWages: ""
+  allWorkDay: null,
+  workDay: null,
+  baseWages: null,
+  perTransPrice: null,
+  jobPerformanceSubsidy: null,
+  workAgeSubsidy: null,
+  otherSubsidy: null,
+  mealSupplementStandard: null,
+  overTimeWages: null,
 };

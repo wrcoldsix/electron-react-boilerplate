@@ -1,4 +1,5 @@
-const XLSX = require('xlsx');
+import * as XLSX from 'xlsx';
+import { ColumnsType } from 'antd/es/table/interface';
 
 /**
  * @data 表格数据 data = [{}] 默认为[[]] 数据结构 二维数组
@@ -53,9 +54,40 @@ export const exportExcel = (
 
   // (9)向workbook中添加 sheet
   const wb = XLSX.utils.table_to_book(tabRef.current);
-//   XLSX.utils.book_append_sheet(wb, sheet, sheetName);
+  //   XLSX.utils.book_append_sheet(wb, sheet, sheetName);
   // (10)导出Excel
   XLSX.writeFile(wb, ExcelName + '.xlsx');
+};
+
+// 导出对象数组
+export const exportExcelJson = ({
+  data,
+  columns,
+  sheetName = '工资计算',
+  excelName = '工资计算',
+}: {
+  data: any[];
+  columns: ColumnsType<any>;
+  sheetName?: string;
+  excelName?: string;
+}) => {
+  const header: any = {};
+  columns.forEach((item) => {
+    header[(item as any).dataIndex] = item.title;
+  });
+
+  const finalData = [header, ...data];
+  console.log('finalData', finalData);
+
+  const worksheet = XLSX.utils.json_to_sheet(finalData, {
+    header: Object.keys(header),
+    skipHeader: true,
+  });
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+
+  // 生成Excel文件并下载
+  XLSX.writeFile(workbook, excelName + '.xlsx');
 };
 
 // 读取excel文件内容

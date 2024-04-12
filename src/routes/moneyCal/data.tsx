@@ -1,21 +1,25 @@
 import { Button, Select } from 'antd';
-import { ColumnsType } from 'antd/es/table/interface';
+import { ColumnsType } from 'antd/es/table/InternalTable';
 import { ITableRow } from './type';
+
+// export type ColumnsType<T extends object> = GetProp<TableProps<T>, 'columns'>;
 
 export const columns = ({
   daysList,
   monthlyAttendanceDays,
   edit,
   del,
+  getColumnsData,
   handleMonthlyAttendanceDaysChange,
 }: {
   daysList: { label: string; value: string }[];
   monthlyAttendanceDays: string;
   del: (record: ITableRow) => void;
   edit: (record: ITableRow) => void;
+  getColumnsData: (arr: ColumnsType<any>) => void;
   handleMonthlyAttendanceDaysChange: (val: string) => void;
 }): ColumnsType<ITableRow> => {
-  return [
+  const columnsArr: ColumnsType<ITableRow> = [
     {
       title: '月应出勤天数',
       align: 'center',
@@ -66,7 +70,7 @@ export const columns = ({
       ],
     },
     {
-      title: () => (
+      title: (
         <Select
           style={{ width: '60px' }}
           value={monthlyAttendanceDays}
@@ -272,7 +276,6 @@ export const columns = ({
       title: '操作',
       fixed: 'right',
       align: 'center',
-      dataIndex: 'operation',
       width: 200,
       render: (text, record) => {
         return (
@@ -289,4 +292,8 @@ export const columns = ({
       },
     },
   ];
+
+  getColumnsData(columnsArr);
+
+  return [...columnsArr];
 };
