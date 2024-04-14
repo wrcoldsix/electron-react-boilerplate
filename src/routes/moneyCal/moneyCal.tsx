@@ -5,7 +5,6 @@ import { IFormData, initFormData, initTableRow, ITableRow } from './type';
 import moment from 'moment';
 import { exportExcelJson } from '@/utils/createExcel';
 import { ColumnsType } from 'antd/es/table/InternalTable';
-import { ColumnGroupType } from 'antd/es/table/interface';
 
 type LayoutType = Parameters<typeof Form>[0]['layout'];
 
@@ -13,13 +12,16 @@ const MoneyCal = () => {
   const [form] = Form.useForm<IFormData>();
   const formLayout: LayoutType = 'horizontal';
   const formItemLayout = { labelCol: { span: 6 }, wrapperCol: { span: 16 } };
-  const { getFieldsValue, setFieldsValue, validateFields } = form;
+  const { getFieldsValue, setFieldsValue, validateFields, resetFields } = form;
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [dataSource, setDataSource] = useState<ITableRow[]>([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [selectedRows, setSelectedRows] = useState<ITableRow[]>([]);
   const [monthlyAttendanceDays, setMonthlyAttendanceDays] = useState('');
+  const operaType = useRef('add');
+  const currentId = useRef<number | null>(null);
+  const currentIndex = useRef(-1);
   const daysList = useRef<{ label: string; value: string }[]>([]);
   const finalColumns = useRef<ColumnsType<any>>([]);
 
@@ -56,9 +58,60 @@ const MoneyCal = () => {
     onChange: onSelectChange,
   };
 
+  // 编辑或删除一条数据，交通补贴重新计算逻辑整合
+  const operaTransSubsidy = (record: ITableRow, index: number) => {
+    let tableData: ITableRow[] = [];
+    const sameNameData = dataSource
+      .filter((item) => item.id !== record.id)
+      .filter((item) => item.name === record.name);
+
+    if (sameNameData.length) {
+      let baseNumber = dataSource
+        .filter((item, ind) => ind < index && item.name === record.name)
+        .reduce((count, item) => {
+          return Number(count) + Number(item.transSubsidy);
+        }, 0);
+
+      tableData = dataSource.map((item, ind) => {
+        if (ind > index && item.name === record.name) {
+          // 交通补贴
+          const transSubsidy = transSubsidyCalcu({
+            truWorkDay: item.workDay,
+            perTransPrice: item.perTransPrice || 0,
+            baseNumber,
+          });
+
+          // 补助合计
+          const subsidySum =
+            Number(item.subsidySum) - Number(item.transSubsidy) + transSubsidy;
+
+          // 实发工资
+          const finallyWages =
+            Number(item.finallyWages) - Number(item.subsidySum) + subsidySum;
+
+          return {
+            ...item,
+            subsidySum,
+            transSubsidy,
+            finallyWages,
+          };
+        }
+
+        return item;
+      });
+    } else {
+      tableData = dataSource;
+    }
+
+    return [...tableData];
+  };
+
   // 编辑操作
-  const edit = (record: ITableRow) => {
+  const edit = (record: ITableRow, index: number) => {
     setIsModalOpen(true);
+    operaType.current = 'edit';
+    currentId.current = record.id ?? null;
+    currentIndex.current = index;
     setFieldsValue({
       project: record.project,
       name: record.name,
@@ -75,21 +128,106 @@ const MoneyCal = () => {
   };
 
   // 删除操作
-  const del = (record: ITableRow) => {
-    const tableData = dataSource.filter((item) => item.id !== record.id);
+  const del = (record: ITableRow, index: number) => {
+    let tableData = dataSource.filter((item) => item.id !== record.id);
+
+    if (index !== dataSource.length - 1) {
+      tableData = operaTransSubsidy(record, index).filter(
+        (item) => item.id !== record.id,
+      );
+    }
 
     setDataSource([...tableData]);
   };
 
+  // 相同姓名数据合并计算
+  const sameNameDataTotalCalculation = (tableData: ITableRow[]) => {
+    // 使用reduce方法合并具有相同name属性的对象
+    const merged = tableData.reduce<ITableRow[]>((acc, current) => {
+      // 检查acc中是否已有相同name的对象
+      const existing = acc.find((item) => item.name === current.name);
+      if (existing) {
+        // 如果存在，更新value为累加值，并处理remark
+        existing.workDay = Number(existing.workDay) + Number(current.workDay);
+        existing.overtimeDay =
+          Number(existing.overtimeDay) + Number(current.overtimeDay);
+        existing.lateOrLeaveEarlyDay =
+          Number(existing.lateOrLeaveEarlyDay) +
+          Number(current.lateOrLeaveEarlyDay);
+        existing.otherVocationDay =
+          Number(existing.otherVocationDay) + Number(current.otherVocationDay);
+        existing.absenteeismDay =
+          Number(existing.absenteeismDay) + Number(current.absenteeismDay);
+        existing.baseWages =
+          Number(existing.baseWages) + Number(current.baseWages);
+        existing.jobPerformance =
+          Number(existing.jobPerformance) + Number(current.jobPerformance);
+        existing.levelWages =
+          Number(existing.levelWages) + Number(current.levelWages);
+        existing.baseWagesSum =
+          Number(existing.baseWagesSum) + Number(current.baseWagesSum);
+        existing.jobPerformancePer =
+          Number(existing.jobPerformancePer) +
+          Number(current.jobPerformancePer);
+        existing.jobPerformanceSubsidy =
+          Number(existing.jobPerformanceSubsidy) +
+          Number(current.jobPerformanceSubsidy);
+        existing.jobPerformanceSum =
+          Number(existing.jobPerformanceSum) +
+          Number(current.jobPerformanceSum);
+        existing.transSubsidy =
+          Number(existing.transSubsidy) + Number(current.transSubsidy);
+        existing.lunchSubsidy =
+          Number(existing.lunchSubsidy) + Number(current.lunchSubsidy);
+        existing.overTimeWages =
+          Number(existing.overTimeWages) + Number(current.overTimeWages);
+        existing.workAgeSubsidy =
+          Number(existing.workAgeSubsidy) + Number(current.workAgeSubsidy);
+        existing.otherSubsidy =
+          Number(existing.otherSubsidy) + Number(current.otherSubsidy);
+        existing.subsidySum =
+          Number(existing.subsidySum) + Number(current.subsidySum);
+        existing.lateOrLeaveEarlyPrice =
+          Number(existing.lateOrLeaveEarlyPrice) +
+          Number(current.lateOrLeaveEarlyPrice);
+        existing.otherVocationPrice =
+          Number(existing.otherVocationPrice) +
+          Number(current.otherVocationPrice);
+        existing.absenteeismPrice =
+          Number(existing.absenteeismPrice) + Number(current.absenteeismPrice);
+        existing.otherDeductWages =
+          Number(existing.otherDeductWages) + Number(current.otherDeductWages);
+        existing.deductWagesSum =
+          Number(existing.deductWagesSum) + Number(current.deductWagesSum);
+        existing.finallyWages =
+          Number(existing.finallyWages) + Number(current.finallyWages);
+        existing.remark += `;${current.project}项目${current.finallyWages}实发工资`;
+      } else {
+        // 如果不存在，直接添加到acc中
+        current.remark = `${current.project}项目${current.finallyWages}实发工资`;
+        acc.push(current);
+      }
+      return acc;
+    }, []);
+
+    return merged;
+  };
+
   // 导出
   const exportExcelFunc = () => {
-    let exportData = dataSource;
+    let exportData = [...dataSource];
     if (selectedRowKeys.length) {
-      exportData = selectedRows;
+      exportData = [...selectedRows];
     }
 
+    const columns = formatColumnsData(finalColumns.current);
+    columns.push({
+      title: '备注',
+      dataIndex: 'remark',
+    });
+
     exportExcelJson({
-      data: exportData.map((item) => {
+      data: sameNameDataTotalCalculation(exportData).map((item) => {
         delete item.id;
         delete item.allWorkDay;
         delete item.perTransPrice;
@@ -100,7 +238,7 @@ const MoneyCal = () => {
           monthlyAttendanceDays: monthlyAttendanceDays,
         };
       }),
-      columns: formatColumnsData(finalColumns.current),
+      columns: columns,
     });
   };
 
@@ -131,28 +269,59 @@ const MoneyCal = () => {
 
   // 添加工资弹窗打开
   const addWages = () => {
+    operaType.current = 'add';
     setIsModalOpen(true);
+    setFieldsValue({
+      ...initFormData,
+    });
   };
 
   // 确认添加工资
   const handleOk = async () => {
     try {
-      const val = await validateFields();
-      console.log('val', val);
+      await validateFields();
 
       const formParms: IFormData = getFieldsValue();
       const {
+        name,
         baseWages,
         allWorkDay,
         workDay: truWorkDay,
-        perTransPrice,
+        perTransPrice: perTransPriceCopy,
         overTimeWages,
         workAgeSubsidy,
         otherSubsidy,
         mealSupplementStandard,
-        jobPerformanceSubsidy,
+        jobPerformanceSubsidy: jobPerformanceSubsidyCopy,
       } = formParms;
-      const tableData = [...dataSource];
+      let tableData = [...dataSource];
+      const perTransPrice = perTransPriceCopy ?? 0;
+      const jobPerformanceSubsidy = jobPerformanceSubsidyCopy
+        ? Number(jobPerformanceSubsidyCopy)
+        : 0;
+
+      // 同名信息数据
+      const sameData =
+        operaType.current === 'add'
+          ? tableData.filter((item) => item.name === name)
+          : tableData.filter(
+              (item) => item.id !== currentId.current && item.name === name,
+            );
+      const sameDatadWorDays =
+        sameData.reduce((count, item) => {
+          return Number(count) + (item.workDay ? Number(item.workDay) : 0);
+        }, 0) + Number(truWorkDay);
+      const sameDataTransSubsidy = sameData.reduce((count, item) => {
+        return (
+          Number(count) + (item.transSubsidy ? Number(item.transSubsidy) : 0)
+        );
+      }, 0);
+
+      if (
+        sameDatadWorDays > moment().daysInMonth() &&
+        operaType.current === 'add'
+      )
+        return message.error(`${name}所有项目出勤天数超过当前月可出勤天数`);
 
       // 基本部分合计
       const baseWagesSum =
@@ -166,12 +335,24 @@ const MoneyCal = () => {
         Number(truWorkDay) *
         Number(mealSupplementStandard ? mealSupplementStandard : 0);
 
-      // 累计交通费
+      // 累计交通费计算
       let transSubsidy = 0;
+      if (!sameData.length) {
+        transSubsidy = transSubsidyCalcu({
+          truWorkDay: truWorkDay,
+          perTransPrice: perTransPrice,
+        });
+      } else {
+        transSubsidy = transSubsidyCalcu({
+          truWorkDay: truWorkDay,
+          perTransPrice: perTransPrice,
+          baseNumber: sameDataTransSubsidy,
+        });
+      }
 
       // 补助合计
       const subsidySum =
-        Number(transSubsidy) +
+        Number(transSubsidy.toFixed(2)) +
         lunchSubsidy +
         Number(overTimeWages ?? 0) +
         Number(workAgeSubsidy ?? 0) +
@@ -184,19 +365,40 @@ const MoneyCal = () => {
       const finallyWages =
         baseWagesSum + jobPerformanceSum + subsidySum + deductWagesSum;
 
-      tableData.push({
+      const newTableRow = {
         ...initTableRow,
-        id: new Date().getTime(),
         ...formParms,
-        subsidySum: subsidySum,
-        jobPerformanceSubsidy,
-        jobPerformanceSum,
-        baseWagesSum: baseWagesSum,
-        lunchSubsidy: lunchSubsidy,
-        transSubsidy: transSubsidy,
-        deductWagesSum,
-        finallyWages,
-      });
+        id: new Date().getTime(),
+        subsidySum: Number(Number(subsidySum).toFixed(2)),
+        jobPerformanceSubsidy: Number(jobPerformanceSubsidy.toFixed(2)),
+        jobPerformanceSum: Number(jobPerformanceSum.toFixed(2)),
+        baseWagesSum: Number(baseWagesSum.toFixed(2)),
+        lunchSubsidy: Number(lunchSubsidy.toFixed(2)),
+        transSubsidy: Number(transSubsidy.toFixed(2)),
+        deductWagesSum: Number(deductWagesSum.toFixed(2)),
+        finallyWages: Number(finallyWages.toFixed(2)),
+      };
+
+      if (operaType.current === 'add') {
+        tableData.push({ ...newTableRow });
+      } else {
+        const newRecord = {
+          ...newTableRow,
+          id: currentId.current,
+        };
+
+        tableData = operaTransSubsidy(newRecord, currentIndex.current).map(
+          (item) => {
+            if (item.id === currentId.current) {
+              return {
+                ...item,
+                ...newRecord,
+              };
+            }
+            return item;
+          },
+        );
+      }
 
       setDataSource([...tableData]);
       handleCancel();
@@ -205,10 +407,65 @@ const MoneyCal = () => {
     }
   };
 
+  // 交通补贴计算
+  const transSubsidyCalcu = ({
+    truWorkDay,
+    perTransPrice,
+    baseNumber = 0,
+  }: {
+    truWorkDay: number | null;
+    perTransPrice: number;
+    baseNumber?: number;
+  }) => {
+    let transSubsidy = 0;
+    const truWorkDays = truWorkDay ? truWorkDay * 2 : 0;
+    if (baseNumber <= 100) {
+      // 第一档标准:不到100 次数
+      const baseOneCount = Math.ceil((100 - baseNumber) / perTransPrice);
+      // 第二档标准：100-150 次数
+      const baseTwoCount = Math.ceil(
+        (150 - baseOneCount * perTransPrice - baseNumber) /
+          (perTransPrice * 0.8),
+      );
+      // 第三档标准：150以上
+
+      if (baseOneCount >= truWorkDays) {
+        transSubsidy = truWorkDays * perTransPrice;
+      } else if (baseOneCount + baseTwoCount >= truWorkDays) {
+        transSubsidy =
+          perTransPrice * baseOneCount +
+          perTransPrice * (truWorkDays - baseOneCount) * 0.8;
+      } else {
+        const baseThreeCount = truWorkDays - (baseOneCount + baseTwoCount);
+        transSubsidy =
+          perTransPrice * baseOneCount +
+          perTransPrice * baseTwoCount * 0.8 +
+          perTransPrice * baseThreeCount * 0.6;
+      }
+    } else if (baseNumber <= 150) {
+      const baseTwoCount = Math.ceil(
+        (150 - baseNumber) / (perTransPrice * 0.8),
+      );
+
+      if (baseTwoCount >= truWorkDays) {
+        transSubsidy = perTransPrice * baseTwoCount * 0.8;
+      } else {
+        const baseThreeCount = truWorkDays - baseTwoCount;
+        transSubsidy =
+          perTransPrice * baseTwoCount * 0.8 +
+          perTransPrice * baseThreeCount * 0.6;
+      }
+    } else {
+      transSubsidy = perTransPrice * truWorkDays * 0.6;
+    }
+
+    return transSubsidy;
+  };
+
   // 取消弹窗
   const handleCancel = () => {
     setIsModalOpen(false);
-    setFieldsValue({ ...initFormData });
+    resetFields();
   };
 
   return (
@@ -304,14 +561,14 @@ const MoneyCal = () => {
             name={'perTransPrice'}
             key="perTransPrice"
           >
-            <Input />
+            <Input type="number" />
           </Form.Item>
           <Form.Item
             label="餐补标准"
             name={'mealSupplementStandard'}
             key="mealSupplementStandard"
           >
-            <Input />
+            <Input type="number" />
           </Form.Item>
           <Form.Item
             label="绩效补助"

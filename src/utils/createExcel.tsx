@@ -77,7 +77,6 @@ export const exportExcelJson = ({
   });
 
   const finalData = [header, ...data];
-  console.log('finalData', finalData);
 
   const worksheet = XLSX.utils.json_to_sheet(finalData, {
     header: Object.keys(header),

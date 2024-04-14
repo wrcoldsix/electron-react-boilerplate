@@ -34,6 +34,7 @@ export interface ITableRow {
   allWorkDay?: number | null;
   perTransPrice?: number | null;
   mealSupplementStandard?: number | null;
+  remark: string
 }
 
 export const initTableRow: ITableRow = {
@@ -72,6 +73,7 @@ export const initTableRow: ITableRow = {
   allWorkDay: null,
   perTransPrice: null,
   mealSupplementStandard: null,
+  remark: ""
 };
 
 export interface IFormData {
@@ -95,9 +97,9 @@ export const initFormData: IFormData = {
   workDay: null,
   baseWages: null,
   perTransPrice: null,
-  jobPerformanceSubsidy: null,
-  workAgeSubsidy: null,
-  otherSubsidy: null,
-  mealSupplementStandard: null,
-  overTimeWages: null,
+  jobPerformanceSubsidy: 0,
+  workAgeSubsidy: 0,
+  otherSubsidy: 0,
+  mealSupplementStandard: 0,
+  overTimeWages: 0,
 };

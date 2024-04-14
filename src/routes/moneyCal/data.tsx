@@ -14,8 +14,8 @@ export const columns = ({
 }: {
   daysList: { label: string; value: string }[];
   monthlyAttendanceDays: string;
-  del: (record: ITableRow) => void;
-  edit: (record: ITableRow) => void;
+  del: (record: ITableRow, index: number) => void;
+  edit: (record: ITableRow, index: number) => void;
   getColumnsData: (arr: ColumnsType<any>) => void;
   handleMonthlyAttendanceDaysChange: (val: string) => void;
 }): ColumnsType<ITableRow> => {
@@ -277,14 +277,14 @@ export const columns = ({
       fixed: 'right',
       align: 'center',
       width: 200,
-      render: (text, record) => {
+      render: (text, record, index) => {
         return (
           <>
-            <Button type="primary" onClick={() => edit(record)}>
+            <Button type="primary" onClick={() => edit(record, index)}>
               编辑
             </Button>
             &nbsp;&nbsp;
-            <Button type="primary" onClick={() => del(record)}>
+            <Button type="primary" onClick={() => del(record, index)}>
               删除
             </Button>
           </>
