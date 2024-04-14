@@ -216,6 +216,7 @@ const MoneyCal = () => {
   // 导出
   const exportExcelFunc = () => {
     let exportData = [...dataSource];
+
     if (selectedRowKeys.length) {
       exportData = [...selectedRows];
     }
@@ -227,18 +228,19 @@ const MoneyCal = () => {
     });
 
     exportExcelJson({
-      data: sameNameDataTotalCalculation(exportData).map((item) => {
-        delete item.id;
-        delete item.allWorkDay;
-        delete item.perTransPrice;
-        delete item.mealSupplementStandard;
-
+      data: sameNameDataTotalCalculation([...exportData]).map((item) => {
         return {
           ...item,
           monthlyAttendanceDays: monthlyAttendanceDays,
         };
       }),
       columns: columns,
+      extraDelColumns: [
+        'id',
+        'allWorkDay',
+        'perTransPrice',
+        'mealSupplementStandard',
+      ],
     });
   };
 
@@ -440,7 +442,7 @@ const MoneyCal = () => {
         transSubsidy =
           perTransPrice * baseOneCount +
           perTransPrice * baseTwoCount * 0.8 +
-          perTransPrice * baseThreeCount * 0.6;
+          perTransPrice * baseThreeCount * 0.5;
       }
     } else if (baseNumber <= 150) {
       const baseTwoCount = Math.ceil(
@@ -453,10 +455,10 @@ const MoneyCal = () => {
         const baseThreeCount = truWorkDays - baseTwoCount;
         transSubsidy =
           perTransPrice * baseTwoCount * 0.8 +
-          perTransPrice * baseThreeCount * 0.6;
+          perTransPrice * baseThreeCount * 0.5;
       }
     } else {
-      transSubsidy = perTransPrice * truWorkDays * 0.6;
+      transSubsidy = perTransPrice * truWorkDays * 0.5;
     }
 
     return transSubsidy;

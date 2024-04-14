@@ -65,18 +65,33 @@ export const exportExcelJson = ({
   columns,
   sheetName = '工资计算',
   excelName = '工资计算',
+  extraDelColumns = [],
 }: {
   data: any[];
   columns: ColumnsType<any>;
   sheetName?: string;
   excelName?: string;
+  extraDelColumns?: string[];
 }) => {
   const header: any = {};
+  const delColumnsObj: any = {};
+  extraDelColumns.forEach((item) => {
+    delColumnsObj[item] = null;
+  });
   columns.forEach((item) => {
-    header[(item as any).dataIndex] = item.title;
+    if (!extraDelColumns.includes((item as any).dataIndex)) {
+      header[(item as any).dataIndex] = item.title;
+    }
   });
 
-  const finalData = [header, ...data];
+  const exportData = [...data].map((item) => {
+    return {
+      ...item,
+      ...delColumnsObj,
+    };
+  });
+
+  const finalData = [header, ...exportData];
 
   const worksheet = XLSX.utils.json_to_sheet(finalData, {
     header: Object.keys(header),
