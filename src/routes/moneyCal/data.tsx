@@ -21,7 +21,17 @@ export const columns = ({
 }): ColumnsType<ITableRow> => {
   const columnsArr: ColumnsType<ITableRow> = [
     {
-      title: '月应出勤天数',
+      title: (
+        <>
+          <span>月应出勤天数</span>&nbsp;&nbsp;
+          <Select
+            style={{ width: '60px' }}
+            value={monthlyAttendanceDays}
+            options={daysList}
+            onChange={handleMonthlyAttendanceDaysChange}
+          />
+        </>
+      ),
       align: 'center',
       fixed: 'left',
       children: [
@@ -66,24 +76,6 @@ export const columns = ({
               width: 80,
             },
           ],
-        },
-      ],
-    },
-    {
-      title: (
-        <Select
-          style={{ width: '60px' }}
-          value={monthlyAttendanceDays}
-          options={daysList}
-          onChange={handleMonthlyAttendanceDaysChange}
-        />
-      ),
-      dataIndex: 'monthlyAttendanceDays',
-      width: 80,
-      children: [
-        {
-          title: ' ',
-          width: 80,
         },
       ],
     },

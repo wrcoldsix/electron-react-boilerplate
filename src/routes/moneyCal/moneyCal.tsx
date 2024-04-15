@@ -70,16 +70,20 @@ const MoneyCal = () => {
         .filter((item, ind) => ind < index && item.name === record.name)
         .reduce((count, item) => {
           return Number(count) + Number(item.transSubsidy);
-        }, 0);
+        }, Number(record.transSubsidy));
 
       tableData = dataSource.map((item, ind) => {
         if (ind > index && item.name === record.name) {
+          console.log('index', index);
+          console.log('baseNumber', baseNumber);
           // 交通补贴
           const transSubsidy = transSubsidyCalcu({
             truWorkDay: item.workDay,
             perTransPrice: item.perTransPrice || 0,
             baseNumber,
           });
+
+          baseNumber += transSubsidy;
 
           // 补助合计
           const subsidySum =
@@ -115,7 +119,7 @@ const MoneyCal = () => {
     setFieldsValue({
       project: record.project,
       name: record.name,
-      allWorkDay: record.allWorkDay,
+      jobPerformance: record.jobPerformance,
       workDay: record.workDay,
       baseWages: record.baseWages,
       perTransPrice: record.perTransPrice,
@@ -147,61 +151,65 @@ const MoneyCal = () => {
       // 检查acc中是否已有相同name的对象
       const existing = acc.find((item) => item.name === current.name);
       if (existing) {
+        const updatedItem = {
+          ...existing,
+        };
         // 如果存在，更新value为累加值，并处理remark
-        existing.workDay = Number(existing.workDay) + Number(current.workDay);
-        existing.overtimeDay =
+        updatedItem.workDay =
+          Number(existing.workDay) + Number(current.workDay);
+        updatedItem.overtimeDay =
           Number(existing.overtimeDay) + Number(current.overtimeDay);
-        existing.lateOrLeaveEarlyDay =
+        updatedItem.lateOrLeaveEarlyDay =
           Number(existing.lateOrLeaveEarlyDay) +
           Number(current.lateOrLeaveEarlyDay);
-        existing.otherVocationDay =
+        updatedItem.otherVocationDay =
           Number(existing.otherVocationDay) + Number(current.otherVocationDay);
-        existing.absenteeismDay =
+        updatedItem.absenteeismDay =
           Number(existing.absenteeismDay) + Number(current.absenteeismDay);
-        existing.baseWages =
-          Number(existing.baseWages) + Number(current.baseWages);
-        existing.jobPerformance =
-          Number(existing.jobPerformance) + Number(current.jobPerformance);
-        existing.levelWages =
+        updatedItem.levelWages =
           Number(existing.levelWages) + Number(current.levelWages);
-        existing.baseWagesSum =
+        updatedItem.baseWagesSum =
           Number(existing.baseWagesSum) + Number(current.baseWagesSum);
-        existing.jobPerformancePer =
+        updatedItem.jobPerformancePer =
           Number(existing.jobPerformancePer) +
           Number(current.jobPerformancePer);
-        existing.jobPerformanceSubsidy =
+        updatedItem.jobPerformanceSubsidy =
           Number(existing.jobPerformanceSubsidy) +
           Number(current.jobPerformanceSubsidy);
-        existing.jobPerformanceSum =
+        updatedItem.jobPerformanceSum =
           Number(existing.jobPerformanceSum) +
           Number(current.jobPerformanceSum);
-        existing.transSubsidy =
+        updatedItem.transSubsidy =
           Number(existing.transSubsidy) + Number(current.transSubsidy);
-        existing.lunchSubsidy =
+        updatedItem.lunchSubsidy =
           Number(existing.lunchSubsidy) + Number(current.lunchSubsidy);
-        existing.overTimeWages =
+        updatedItem.overTimeWages =
           Number(existing.overTimeWages) + Number(current.overTimeWages);
-        existing.workAgeSubsidy =
+        updatedItem.workAgeSubsidy =
           Number(existing.workAgeSubsidy) + Number(current.workAgeSubsidy);
-        existing.otherSubsidy =
+        updatedItem.otherSubsidy =
           Number(existing.otherSubsidy) + Number(current.otherSubsidy);
-        existing.subsidySum =
+        updatedItem.subsidySum =
           Number(existing.subsidySum) + Number(current.subsidySum);
-        existing.lateOrLeaveEarlyPrice =
+        updatedItem.lateOrLeaveEarlyPrice =
           Number(existing.lateOrLeaveEarlyPrice) +
           Number(current.lateOrLeaveEarlyPrice);
-        existing.otherVocationPrice =
+        updatedItem.otherVocationPrice =
           Number(existing.otherVocationPrice) +
           Number(current.otherVocationPrice);
-        existing.absenteeismPrice =
+        updatedItem.absenteeismPrice =
           Number(existing.absenteeismPrice) + Number(current.absenteeismPrice);
-        existing.otherDeductWages =
+        updatedItem.otherDeductWages =
           Number(existing.otherDeductWages) + Number(current.otherDeductWages);
-        existing.deductWagesSum =
+        updatedItem.deductWagesSum =
           Number(existing.deductWagesSum) + Number(current.deductWagesSum);
-        existing.finallyWages =
+        updatedItem.finallyWages =
           Number(existing.finallyWages) + Number(current.finallyWages);
-        existing.remark += `;${current.project}项目${current.finallyWages}实发工资`;
+        updatedItem.remark += `;${current.project}项目${current.finallyWages}实发工资`;
+
+        // 找到原有对象的索引并替换为新对象
+        const index = acc.indexOf(existing);
+        acc[index] = updatedItem;
       } else {
         // 如果不存在，直接添加到acc中
         current.remark = `${current.project}项目${current.finallyWages}实发工资`;
@@ -287,9 +295,9 @@ const MoneyCal = () => {
       const {
         name,
         baseWages,
-        allWorkDay,
         workDay: truWorkDay,
         perTransPrice: perTransPriceCopy,
+        jobPerformance,
         overTimeWages,
         workAgeSubsidy,
         otherSubsidy,
@@ -307,13 +315,14 @@ const MoneyCal = () => {
         operaType.current === 'add'
           ? tableData.filter((item) => item.name === name)
           : tableData.filter(
-              (item) => item.id !== currentId.current && item.name === name,
+              (item, index) =>
+                index < currentIndex.current && item.name === name,
             );
       const sameDatadWorDays =
         sameData.reduce((count, item) => {
           return Number(count) + (item.workDay ? Number(item.workDay) : 0);
         }, 0) + Number(truWorkDay);
-      const sameDataTransSubsidy = sameData.reduce((count, item) => {
+      let sameDataTransSubsidy = sameData.reduce((count, item) => {
         return (
           Number(count) + (item.transSubsidy ? Number(item.transSubsidy) : 0)
         );
@@ -326,8 +335,7 @@ const MoneyCal = () => {
         return message.error(`${name}所有项目出勤天数超过当前月可出勤天数`);
 
       // 基本部分合计
-      const baseWagesSum =
-        (Number(baseWages) / Number(allWorkDay)) * Number(truWorkDay);
+      const baseWagesSum = Number(baseWages) + Number(jobPerformance);
 
       // 绩效部分合计
       const jobPerformanceSum = Number(jobPerformanceSubsidy ?? 0) + 0;
@@ -535,14 +543,6 @@ const MoneyCal = () => {
             <Input className="custom_input" />
           </Form.Item>
           <Form.Item
-            label="应出勤天数"
-            name={'allWorkDay'}
-            key="allWorkDay"
-            rules={[{ required: true }]}
-          >
-            <Input className="custom_input" type="number" />
-          </Form.Item>
-          <Form.Item
             label="实际出勤天数"
             name={'workDay'}
             key="workDay"
@@ -564,6 +564,13 @@ const MoneyCal = () => {
             key="perTransPrice"
           >
             <Input type="number" />
+          </Form.Item>
+          <Form.Item
+            label="岗位绩效"
+            name={'jobPerformance'}
+            key="jobPerformance"
+          >
+            <Input className="custom_input" type="number" />
           </Form.Item>
           <Form.Item
             label="餐补标准"

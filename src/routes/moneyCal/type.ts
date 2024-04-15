@@ -79,7 +79,7 @@ export const initTableRow: ITableRow = {
 export interface IFormData {
   project: string;
   name: string;
-  allWorkDay: number | null;
+  jobPerformance: number | null;
   workDay: number | null;
   baseWages: number | null;
   perTransPrice: number | null;
@@ -93,7 +93,7 @@ export interface IFormData {
 export const initFormData: IFormData = {
   project: '',
   name: '',
-  allWorkDay: null,
+  jobPerformance: null,
   workDay: null,
   baseWages: null,
   perTransPrice: null,
