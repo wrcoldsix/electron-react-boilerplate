@@ -59,7 +59,11 @@ const MoneyCal = () => {
   };
 
   // 编辑或删除一条数据，交通补贴重新计算逻辑整合
-  const operaTransSubsidy = (record: ITableRow, index: number) => {
+  const operaTransSubsidy = (
+    record: ITableRow,
+    index: number,
+    operaType: string,
+  ) => {
     let tableData: ITableRow[] = [];
     const sameNameData = dataSource
       .filter((item) => item.id !== record.id)
@@ -68,9 +72,12 @@ const MoneyCal = () => {
     if (sameNameData.length) {
       let baseNumber = dataSource
         .filter((item, ind) => ind < index && item.name === record.name)
-        .reduce((count, item) => {
-          return Number(count) + Number(item.transSubsidy);
-        }, Number(record.transSubsidy));
+        .reduce(
+          (count, item) => {
+            return Number(count) + Number(item.transSubsidy);
+          },
+          operaType === 'edit' ? Number(record.transSubsidy) : 0,
+        );
 
       tableData = dataSource.map((item, ind) => {
         if (ind > index && item.name === record.name) {
@@ -86,7 +93,7 @@ const MoneyCal = () => {
           baseNumber += transSubsidy;
 
           // 补助合计
-          const subsidySum =
+          const subsidySum: any =
             Number(item.subsidySum) - Number(item.transSubsidy) + transSubsidy;
 
           // 实发工资
@@ -136,7 +143,7 @@ const MoneyCal = () => {
     let tableData = dataSource.filter((item) => item.id !== record.id);
 
     if (index !== dataSource.length - 1) {
-      tableData = operaTransSubsidy(record, index).filter(
+      tableData = operaTransSubsidy(record, index, 'del').filter(
         (item) => item.id !== record.id,
       );
     }
@@ -397,17 +404,19 @@ const MoneyCal = () => {
           id: currentId.current,
         };
 
-        tableData = operaTransSubsidy(newRecord, currentIndex.current).map(
-          (item) => {
-            if (item.id === currentId.current) {
-              return {
-                ...item,
-                ...newRecord,
-              };
-            }
-            return item;
-          },
-        );
+        tableData = operaTransSubsidy(
+          newRecord,
+          currentIndex.current,
+          'edit',
+        ).map((item) => {
+          if (item.id === currentId.current) {
+            return {
+              ...item,
+              ...newRecord,
+            };
+          }
+          return item;
+        });
       }
 
       setDataSource([...tableData]);
